@@ -1,5 +1,5 @@
 
 export default {
-    dbURL: process.env.MONGO_URL || 'mongodb+srv://stavyaarbar:anistav12345@cluster0.uqvtq.mongodb.net/',
+    dbURL: process.env.MONGO_URL,
     dbName: process.env.DB_NAME || 'story_db'
 }

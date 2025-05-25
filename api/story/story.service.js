@@ -12,10 +12,11 @@ export const storyService = {
     query,
     getById,
     add,
-    update,
+    // update,
     addStoryMsg,
     removeStoryMsg,
-    addStoryLike
+    addStoryLike,
+    getUserPosts
 }
 
 async function query() {//filterBy = { txt: '' }
@@ -24,7 +25,7 @@ async function query() {//filterBy = { txt: '' }
         // const sort = _buildSort(filterBy)
 
         const collection = await dbService.getCollection('story')
-        var storyCursor = await collection.find()//criteria, { sort }
+        var storyCursor = await collection.find().sort({ createdAt: -1 })//criteria, { sort }
 
         // if (filterBy.pageIdx !== undefined) {
         //     storyCursor.skip(filterBy.pageIdx * PAGE_SIZE).limit(PAGE_SIZE)
@@ -79,7 +80,6 @@ async function add(story) {
     try {
         const collection = await dbService.getCollection('story')
         await collection.insertOne(story)
-
         return story
     } catch (err) {
         logger.error('cannot insert story', err)
@@ -87,20 +87,20 @@ async function add(story) {
     }
 }
 
-async function update(story) {
-    const storyToSave = { vendor: story.vendor, speed: story.speed }
+// async function update(story) {
+//     const storyToSave = { vendor: story.vendor, speed: story.speed }
 
-    try {
-        const criteria = { _id: ObjectId.createFromHexString(story._id) }
-        const collection = await dbService.getCollection('story')
-        await collection.updateOne(criteria, { $set: storyToSave })
+//     try {
+//         const criteria = { _id: ObjectId.createFromHexString(story._id) }
+//         const collection = await dbService.getCollection('story')
+//         await collection.updateOne(criteria, { $set: storyToSave })
 
-        return story
-    } catch (err) {
-        logger.error(`cannot update story ${story._id}`, err)
-        throw err
-    }
-}
+//         return story
+//     } catch (err) {
+//         logger.error(`cannot update story ${story._id}`, err)
+//         throw err
+//     }
+// }
 
 async function addStoryMsg(storyId, msg) {
     try {
@@ -153,6 +153,19 @@ async function removeStoryMsg(storyId, msgId) {
         return msgId
     } catch (err) {
         logger.error(`cannot remove story msg ${storyId}`, err)
+        throw err
+    }
+}
+
+async function getUserPosts(userId) {
+    try {
+        console.log('here start getUserPosts');
+        const collection = await dbService.getCollection('story')
+        const res = await collection.find({ 'by._id': userId }).toArray()
+        console.log('here end getUserPosts');
+        return res
+    } catch (err) {
+        logger.error(`cannot get story ${userId}`, err)
         throw err
     }
 }

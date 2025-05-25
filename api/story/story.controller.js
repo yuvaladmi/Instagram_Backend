@@ -31,10 +31,12 @@ export async function getStoryById(req, res) {
 
 export async function addStory(req, res) {
     const { loggedinUser, body: story } = req
-
+    logger.info('story', story);
     try {
-        story.owner = loggedinUser
-        const addedStory = await storyService.add(story)
+        story.story.by = loggedinUser
+        story.story.comments = [];
+        story.story.likedBy = [];
+        const addedStory = await storyService.add(story.story)
         res.json(addedStory)
     } catch (err) {
         logger.error('Failed to add story', err)
@@ -42,23 +44,23 @@ export async function addStory(req, res) {
     }
 }
 
-export async function updateStory(req, res) {
-    const { loggedinUser, body: story } = req
-    const { _id: userId, isAdmin } = loggedinUser
+// export async function updateStory(req, res) {
+//     const { loggedinUser, body: story } = req
+//     const { _id: userId, isAdmin } = loggedinUser
 
-    if (!isAdmin && story.owner._id !== userId) {
-        res.status(403).send('Not your story...')
-        return
-    }
+//     if (!isAdmin && story.owner._id !== userId) {
+//         res.status(403).send('Not your story...')
+//         return
+//     }
 
-    try {
-        const updatedStory = await storyService.update(story)
-        res.json(updatedStory)
-    } catch (err) {
-        logger.error('Failed to update story', err)
-        res.status(400).send({ err: 'Failed to update story' })
-    }
-}
+//     try {
+//         const updatedStory = await storyService.update(story)
+//         res.json(updatedStory)
+//     } catch (err) {
+//         logger.error('Failed to update story', err)
+//         res.status(400).send({ err: 'Failed to update story' })
+//     }
+// }
 
 export async function removeStory(req, res) {
     try {
@@ -93,12 +95,27 @@ export async function addStoryLike(req, res) {
     console.log('addStoryLike')
     const { loggedinUser } = req
     try {
+        console.log(loggedinUser)
         const storyId = req.params.id
+        console.log(storyId)
         const savedLike = await storyService.addStoryLike(storyId, loggedinUser)
         res.json(savedLike)
     } catch (err) {
         logger.error('Failed to add story msg', err)
         res.status(400).send({ err: 'Failed to add story msg' })
+    }
+}
+
+export async function getUserPosts(req, res) {
+    try {
+        const userId = req.params.userId
+        logger.info('userId=>'+userId);
+        const userPosts = await storyService.getUserPosts(userId)
+        console.log('userPosts=>'+userPosts);
+        res.json(userPosts)
+    } catch (err) {
+        logger.error('Failed to get users stories ', err)
+        res.status(400).send({ err: 'Failed to get users stories' })
     }
 }
 
