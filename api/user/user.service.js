@@ -10,6 +10,9 @@ export const userService = {
     remove, // Delete (remove user)
     query, // List (of users)
     getByUsername, // Used for Login
+    followUser,
+    unFollowUser,
+    toggleSaveStory
 }
 
 async function query(filterBy = {}) {
@@ -115,6 +118,65 @@ async function add(user) {
         logger.error('cannot add user', err)
         throw err
     }
+}
+
+// service
+async function followUser(targetUserId, currentUserId) {
+  const userCollection = await dbService.getCollection('user')
+  await userCollection.updateOne(
+    { _id: ObjectId.createFromHexString(currentUserId) },
+    { $addToSet: { following: ObjectId.createFromHexString(targetUserId) } }
+  )
+  await userCollection.updateOne(
+    { _id: ObjectId.createFromHexString(targetUserId) },
+    { $addToSet: { followers: ObjectId.createFromHexString(currentUserId) } }
+  )
+}
+
+async function unFollowUser(targetUserId, currentUserId) {
+  const userCollection = await dbService.getCollection('user')
+  await userCollection.updateOne(
+    { _id: ObjectId.createFromHexString(currentUserId) },
+    { $pull: { following: ObjectId.createFromHexString(targetUserId) } }
+  )
+  await userCollection.updateOne(
+    { _id: ObjectId.createFromHexString(targetUserId) },
+    { $pull: { followers: ObjectId.createFromHexString(currentUserId) } }
+  )
+}
+async function toggleSaveStory(storyId, loggedinUserId) {
+	try {
+		const userCollection = await dbService.getCollection('user');
+		const userObjectId = ObjectId.createFromHexString(loggedinUserId);
+		const storyObjectId = ObjectId.createFromHexString(storyId);
+
+		const user = await userCollection.findOne({ _id: userObjectId });
+
+		const savedList = user.savedStoryIds || [];
+
+		const isAlreadySaved = savedList.some(id => id.equals(storyObjectId));
+
+		let res;
+		if (isAlreadySaved) {
+			// אם כבר שמור - נוריד אותו
+			res = await userCollection.updateOne(
+				{ _id: userObjectId },
+				{ $pull: { savedStoryIds: storyObjectId } }
+			);
+			console.log('Story unsaved');
+		} else {
+			// אם לא שמור - נוסיף אותו
+			res = await userCollection.updateOne(
+				{ _id: userObjectId },
+				{ $addToSet: { savedStoryIds: storyObjectId } }
+			);
+			console.log('Story saved');
+		}
+
+		console.log('Matched:', res.matchedCount, 'Modified:', res.modifiedCount);
+	} catch (err) {
+		console.error('Error in toggleSaveStory:', err);
+	}
 }
 
 function _buildCriteria(filterBy) {

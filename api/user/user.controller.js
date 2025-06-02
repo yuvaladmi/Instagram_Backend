@@ -46,3 +46,46 @@ export async function updateUser(req, res) {
         res.status(400).send({ err: 'Failed to update user' })
     }
 }
+
+// controller
+export async function followUser(req, res) {
+    const { id } = req.params
+    const { loggedinUser } = req
+    console.log(id)
+    console.log(loggedinUser)
+    try {
+        await userService.followUser(id, loggedinUser._id)
+        const updatedUser = await userService.getById(loggedinUser._id)
+        // console.log(updatedUser)
+        res.json(updatedUser)
+    } catch (err) {
+        res.status(500).send('Failed to follow')
+    }
+}
+
+export async function unFollowUser(req, res) {
+    const { id } = req.params
+    const { loggedinUser } = req
+
+    try {
+        await userService.unFollowUser(id, loggedinUser._id)
+        // const updatedUser = await userService.getById(loggedinUser._id)
+        res.json(loggedinUser)
+    } catch (err) {
+        res.status(500).send('Failed to unfollow')
+    }
+}
+
+export async function saveStory(req, res){
+    const { id } = req.params
+    const { loggedinUser } = req
+    
+    try {
+        await userService.toggleSaveStory(id, loggedinUser._id)
+        const updatedUser = await userService.getById(loggedinUser._id)
+        res.json(updatedUser)
+    } catch (err) {
+        res.status(500).send('failed saveStory')
+    }
+}
+
