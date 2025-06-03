@@ -47,7 +47,8 @@ function getLoginToken(user) {
         fullname: user.fullname, 
         score: user.score,
         isAdmin: user.isAdmin,
-    }
+		imgUrl: user.imgUrl
+	}
 	return cryptr.encrypt(JSON.stringify(userInfo))
 }
 
