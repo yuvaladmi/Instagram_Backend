@@ -1,14 +1,14 @@
 import dotenv from 'dotenv'
 dotenv.config()
 import getConfigProd from './prod.js'
-import configDev from './dev.js'
+import getConfigDev from './dev.js'
 
 
 export var config
 if (process.env.NODE_ENV === 'production') {
     config = getConfigProd()
 } else {
-    config = getConfigProd()
+    config = getConfigDev()
 }
 
 
